@@ -48,7 +48,7 @@ def status_page():
     <html>
     <head>
         <title>Web3Pi Status Page</title>
-        <meta http-equiv="refresh" content="50">
+        <meta http-equiv="refresh" content="5">
     </head>
     <body>
         <h1>Web3Pi status: {{ status }}</h1>
