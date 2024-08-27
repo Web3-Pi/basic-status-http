@@ -48,27 +48,28 @@ def status_page():
     <html>
     <head>
         <title>Web3Pi Status Page</title>
-        <meta http-equiv="refresh" content="2">
+        <meta http-equiv="refresh" content="50">
     </head>
     <body>
         <h1>Web3Pi status: {{ status }}</h1>
-        <br>
-        <hr>
-        <br>
+        <br><hr><br>
         <b>hostname:</b> <a href="http://{{ hostname }}.local">{{ hostname }}</a><br>
         <b>IP:</b> <a href="http://{{ IP }}">{{ IP }}</a><br>
-        <b>uptime:</b> {{ uptime }}<br>
-        <br>
+        <b>uptime:</b> {{ uptime }}<br><br>
         <b>Grafana:</b> <a href="http://{{ IP }}:3000/dashboards">http://{{ IP }}:3000/dashboards</a><br>
         <b>Simple System Monitor:</b> <a href="http://{{ IP }}:7197/node/system/status">http://{{ IP }}:7197/node/system/status</a><br>
         <hr>
         Page generation time: {{ gTime }} <br>
         <hr>
-        Installation log file (/var/log/web3pi.log)
-        <br><br>
-        <textarea name="message" rows="256" cols="220">{{ log }}</textarea>
-        <br>
+        Installation log file (/var/log/web3pi.log)<br><br>
+        <textarea id="logTextArea" rows="50" cols="200">{{ log }}</textarea><br>
         <hr>
+        <script type="text/javascript">
+            window.onload = function () {
+            var textarea = document.getElementById('logTextArea');
+            textarea.scrollTop = textarea.scrollHeight;
+            }
+        </script>
     </body>
     </html>
     '''
