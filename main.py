@@ -19,6 +19,22 @@ def read_status_file():
         # If an error occurs during file reading, return an error message or handle it accordingly
         return f"Error reading the file: {str(e)}"
 
+def read_log_file():
+    # Step 1: Check if the file exists
+    file_path = '/var/log/web3pi.log'
+    if not os.path.exists(file_path):
+        return "-"
+
+    try:
+        # Step 2: Open and read the file contents
+        with open(file_path, 'r') as file:
+            file_content = file.read()
+        return file_content
+    except Exception as e:
+        # If an error occurs during file reading, return an error message or handle it accordingly
+        return f"Error reading the file: {str(e)}"
+
+
 
 app = Flask(__name__)
 
@@ -48,12 +64,19 @@ def status_page():
         <hr>
         <br>
         Page generation time: {{ gTime }} <br>
+        <hr>
+        <hr>
+        Installation log file (/var/log/web3pi.log)
+        <br>
+        {{ log }}
+        <br>
+        <hr>
     </body>
     </html>
     '''
 
     # Render the HTML template with the status value
-    return render_template_string(html_template, status=read_status_file(), hostname=get_hostname(), IP=get_ip_address(), uptime=get_system_uptime(), gTime=get_current_system_time())
+    return render_template_string(html_template, status=read_status_file(), hostname=get_hostname(), IP=get_ip_address(), uptime=get_system_uptime(), gTime=get_current_system_time(), log=read_log_file())
 
 def get_hostname():
     hostname = socket.gethostname()
