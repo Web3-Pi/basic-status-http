@@ -62,13 +62,11 @@ def status_page():
         <b>Grafana:</b> <a href="http://{{ IP }}:3000/dashboards">http://{{ IP }}:3000/dashboards</a><br>
         <b>Simple System Monitor:</b> <a href="http://{{ IP }}:7197/node/system/status">http://{{ IP }}:7197/node/system/status</a><br>
         <hr>
-        <br>
         Page generation time: {{ gTime }} <br>
         <hr>
-        <hr>
         Installation log file (/var/log/web3pi.log)
-        <br>
-        {{ log }}
+        <br><br>
+        <textarea name="message" rows="256" cols="220">{{ log }}</textarea>
         <br>
         <hr>
     </body>
