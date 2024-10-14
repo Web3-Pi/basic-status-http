@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string
+from flask import Flask, send_from_directory, render_template_string
 from datetime import datetime
 import os
 import socket
@@ -38,10 +38,31 @@ def read_log_file():
 
 app = Flask(__name__)
 
-@app.route('/')
+# @app.route("/favicon.ico")
+#
+# def favicon():
+# 	return send_from_directory(os.path.join(app.root_path, 'static'),'favicon.ico',mimetype='image/vnd.microsof.icon')
 
+@app.route("/")
 
 def status_page():
+    uptime_sec = 0
+    try:
+        # Open and read the /proc/uptime file
+        with open('/proc/uptime', 'r') as file:
+            uptime_sec = float(file.readline().split()[0])
+
+    except Exception as e:
+        uptime_sec = 181
+
+    grafana_url = f"http://{get_ip_address()}:3000/dashboards"
+
+    # Determine if the Grafana link should be active based on uptime
+    if uptime_sec > 180:
+        grafana_link = f'<a href="{grafana_url}" target="_blank"><center>Grafana monitoring<br>{grafana_url}</center></a>'
+    else:
+        remaining_time = int(180 - uptime_sec)
+        grafana_link = f'<a href="#" onclick="return false;" style="pointer-events: none; color: grey;"><center>Grafana monitoring<br>Button will be active in {remaining_time} seconds.</center></a>'
 
     # Define the HTML template with auto-refresh every 2 seconds
     html_template = '''
@@ -51,7 +72,8 @@ def status_page():
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="refresh" content="5">
-    <title>Web3Pi Installation Status</title>
+    <link rel="shortcut icon" href="{{ url_for('static',filename='favicon.ico') }}">
+    <title>Web3 Pi Installation Status</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -185,11 +207,11 @@ def status_page():
     </div>
 
      <a href="https://web3pi.io" target="_blank">
-        <img src="https://cdn.prod.website-files.com/66531c1b16371fa0309a0de0/66a3c94b4154857fba1bf1ff_Web3Pi%20Logo%20new2.svg" alt="Web3Pi Logo" class="logo">
+        <img src="{{ url_for('static',filename='LogoWeb3Pi.svg') }}" alt="Web3Pi Logo" class="logo">
     </a>
     
     <div class="status">
-        <h1>Web3Pi installation status: {{ status }}</h1>
+        <h1>Web3 Pi installation status: {{ status }}</h1>
         <h2>Node IP: <a href="http://{{ IP }}" class="link-url" target="_blank">{{ IP }}</a></h2>
         <h3>Hostname: <a href="http://{{ hostname }}.local" class="link-url" target="_blank">{{ hostname }}.local</a></h3>
         <h4>Uptime: {{ uptime }}</h4>
@@ -197,7 +219,7 @@ def status_page():
     </div>
 
     <div class="links">
-        <a href="http://{{ IP }}:3000" target="_blank"><center>Grafana monitoring<br>http://{{ IP }}:3000</center></a>
+        {{ grafana_link | safe }}
         <a href="http://{{ IP }}:7197/node/system/status" target="_blank"><center>JSON status<br>http://{{ IP }}:7197/node/system/status</center></a>
     </div>
 
@@ -217,7 +239,7 @@ def status_page():
     '''
 
     # Render the HTML template with the status value
-    return render_template_string(html_template, status=read_status_file(), hostname=get_hostname(), IP=get_ip_address(), uptime=get_system_uptime(), gTime=get_current_system_time(), log=read_log_file())
+    return render_template_string(html_template, status=read_status_file(), hostname=get_hostname(), IP=get_ip_address(), uptime=get_system_uptime(), gTime=get_current_system_time(), log=read_log_file(), grafana_link=grafana_link)
 
 def get_hostname():
     hostname = socket.gethostname()
@@ -252,23 +274,22 @@ def get_system_uptime():
         with open('/proc/uptime', 'r') as file:
             uptime_seconds = float(file.readline().split()[0])
 
-        # Convert uptime from seconds to hours, minutes, and seconds
-        uptime_hours = int(uptime_seconds // 3600)
+        # Convert uptime from seconds to days, hours, minutes, and seconds
+        uptime_days = int(uptime_seconds // 86400)
+        uptime_hours = int((uptime_seconds % 86400) // 3600)
         uptime_minutes = int((uptime_seconds % 3600) // 60)
         uptime_seconds = int(uptime_seconds % 60)
 
-        # Format the uptime as a string
-        uptime_str = f"{uptime_hours} hours, {uptime_minutes} minutes, {uptime_seconds} seconds"
+        uptime_str = f"{uptime_days} days, {uptime_hours} hours, {uptime_minutes} minutes, {uptime_seconds} seconds"
 
         return uptime_str
     except Exception as e:
         # Handle any potential errors by returning an error message
         return f"Error retrieving uptime: {str(e)}"
 
-
 # Example usage:
-# uptime = get_system_uptime()
-# print(uptime)
+# print(get_system_uptime())
+
 
 def get_current_system_time():
     # Get the current system time
