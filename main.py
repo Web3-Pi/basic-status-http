@@ -46,6 +46,8 @@ app = Flask(__name__)
 @app.route("/")
 
 def status_page():
+    ref_time = 5 # How often the page should refresh. After the installation is complete, I will extend this time.
+
     uptime_sec = 0
     try:
         # Open and read the /proc/uptime file
@@ -57,21 +59,30 @@ def status_page():
 
     grafana_url = f"http://{get_ip_address()}:3000/dashboards"
 
-    # Determine if the Grafana link should be active based on uptime
-    if uptime_sec > 180:
-        grafana_link = f'<a href="{grafana_url}" target="_blank"><center>Grafana monitoring<br>{grafana_url}</center></a>'
+    status_file_content = read_status_file()
+
+    # If the installation is not complete, the button for Grafana is disabled.
+    if "STAGE 100:" in status_file_content:
+        # Determine if the Grafana link should be active based on uptime
+        if uptime_sec > 180:
+            ref_time = 30 # The installation is complete, so we can refresh the status less frequently.
+            grafana_link = f'<a href="{grafana_url}" target="_blank"><center>Grafana monitoring<br>{grafana_url}</center></a>'
+        else:
+            remaining_time = int(180 - uptime_sec)
+            grafana_link = f'<a href="#" onclick="return false;" style="pointer-events: none; color: grey;"><center>Grafana monitoring<br>Button will be active in {remaining_time} seconds.</center></a>'
     else:
-        remaining_time = int(180 - uptime_sec)
-        grafana_link = f'<a href="#" onclick="return false;" style="pointer-events: none; color: grey;"><center>Grafana monitoring<br>Button will be active in {remaining_time} seconds.</center></a>'
+        ref_time = 5
+        grafana_link = f'<a href="#" onclick="return false;" style="pointer-events: none; color: grey;"><center>Grafana monitoring<br>Button will be enabled after the installation is complete.</center></a>'
+
 
     # Define the HTML template with auto-refresh every 2 seconds
     html_template = '''
     <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="5">
+    <meta http-equiv="refresh" content="{{ ref_time }}">
     <link rel="shortcut icon" href="{{ url_for('static',filename='favicon.ico') }}">
     <title>Web3 Pi Installation Status</title>
     <style>
@@ -239,7 +250,7 @@ def status_page():
     '''
 
     # Render the HTML template with the status value
-    return render_template_string(html_template, status=read_status_file(), hostname=get_hostname(), IP=get_ip_address(), uptime=get_system_uptime(), gTime=get_current_system_time(), log=read_log_file(), grafana_link=grafana_link)
+    return render_template_string(html_template, status=status_file_content, hostname=get_hostname(), IP=get_ip_address(), uptime=get_system_uptime(), gTime=get_current_system_time(), log=read_log_file(), grafana_link=grafana_link, refTime=ref_time)
 
 def get_hostname():
     hostname = socket.gethostname()
