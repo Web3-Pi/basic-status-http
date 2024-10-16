@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory, render_template_string
+from flask import Flask, render_template_string
 from datetime import datetime
 import os
 import socket
@@ -250,7 +250,7 @@ def status_page():
     '''
 
     # Render the HTML template with the status value
-    return render_template_string(html_template, status=status_file_content, hostname=get_hostname(), IP=get_ip_address(), uptime=get_system_uptime(), gTime=get_current_system_time(), log=read_log_file(), grafana_link=grafana_link, refTime=ref_time)
+    return render_template_string(html_template, status=status_file_content, hostname=get_hostname(), IP=get_ip_address(), uptime=get_system_uptime(), gTime=get_current_system_time(), log=read_log_file(), grafana_link=grafana_link, ref_time=ref_time)
 
 def get_hostname():
     hostname = socket.gethostname()
