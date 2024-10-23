@@ -62,7 +62,7 @@ def status_page():
     status_file_content = read_status_file()
 
     # If the installation is not complete, the button for Grafana is disabled.
-    if "STAGE 100:" in status_file_content:
+    if "STAGE 100: Installation completed" in status_file_content:
         # Determine if the Grafana link should be active based on uptime
         if uptime_sec > 180:
             ref_time = 30 # The installation is complete, so we can refresh the status less frequently.
